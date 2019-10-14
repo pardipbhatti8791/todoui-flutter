@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 void main() => runApp(MyApp());
 
@@ -10,53 +11,150 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: AddTodo(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
+class AddTodo extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _AddTodoState createState() => _AddTodoState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _AddTodoState extends State<AddTodo> {
+  final _formKey = GlobalKey<FormState>();
+  TextEditingController _dateController = TextEditingController();
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  String title = '';
+  String priority;
+  DateTime _date = DateTime.now();
+
+  final DateFormat _dateFormat = DateFormat('dd MMM, yyyy');
+  final List<String> _priorities = ['Gugu', 'Pardip'];
+
+  _handleDatePicker() async {
+    final DateTime date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (date != null && date != _date) {
+      setState(() {
+        _date = date;
+      });
+      _dateController.text = _dateFormat.format(_date);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 80),
+            child: Column(
+              children: <Widget>[
+                Text(
+                  'Add Task',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Form(
+                  key: _formKey,
+                  child: (Column(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 20,
+                        ),
+                        child: TextFormField(
+                          style: TextStyle(fontSize: 18),
+                          decoration: InputDecoration(
+                            labelText: "Title",
+                            labelStyle: TextStyle(
+                              fontSize: 18,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          validator: (input) => input.trim().isEmpty
+                              ? 'Please enter a title'
+                              : null,
+                          onSaved: (input) => title = input,
+                          initialValue: title,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 20,
+                        ),
+                        child: TextFormField(
+                          readOnly: true,
+                          controller: _dateController,
+                          onTap: _handleDatePicker,
+                          style: TextStyle(fontSize: 18),
+                          decoration: InputDecoration(
+                            labelText: "Date",
+                            labelStyle: TextStyle(
+                              fontSize: 18,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 20,
+                        ),
+                        child: DropdownButtonFormField(
+                          items: _priorities.map((String pri) {
+                            return DropdownMenuItem(
+                              value: pri,
+                              child: Text(
+                                pri,
+                                style: TextStyle(color: Colors.blue),
+                              ),
+                            );
+                          }).toList(),
+                          decoration: InputDecoration(
+                            labelText: "Priority",
+                            labelStyle: TextStyle(
+                              fontSize: 18,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          validator: (input) => priority == null
+                              ? 'Please select priority'
+                              : null,
+                          onChanged: (value) {
+                            setState(() {
+                              priority = value.toString();
+                            });
+                          },
+                          value: priority,
+                        ),
+                      )
+                    ],
+                  )),
+                )
+              ],
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
       ),
     );
   }
